@@ -1,18 +1,22 @@
 package routers
 
 import (
-	c "binar-academy/example-db-rest-api/controllers"
 	"github.com/gin-gonic/gin"
+	c "memperbaikikode/controllers"
 )
 
 func GetEngine() *gin.Engine {
 	router := gin.Default()
 
-	router.GET("/user", c.UserGet)
-	router.GET("/user/:id", c.UserDetail)
-	router.POST("/user", c.UserCreate)
-	router.PUT("/user/:id", c.UserUpdate)
-	router.DELETE("/user/:id", c.UserDelete)
+	router.POST("/register", c.RegisterUser)
+	post := router.Group("/post").Use(c.AuthRequired)
+	{
+		post.GET("/", c.PostGet)
+		post.GET("/:id", c.PostDetail)
+		post.POST("/", c.PostCreate)
+		post.PUT("/:id", c.PostUpdate)
+		post.DELETE("/:id", c.PostDelete)
+	}
 
 	return router
 }

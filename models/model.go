@@ -4,22 +4,28 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"log"
+	"os"
 )
 
 type Response struct {
-	Message []string    `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+	Success    bool        `json:"success"`
+	StatusCode int         `json:"status_code"`
+	Message    string      `json:"message"`
+	Data       interface{} `json:"data,omitempty"`
 }
 
 var db *gorm.DB
 var err error
 
-func init(){
-
-	db, err = gorm.Open("postgres", "postgres://yvqfzerfajfbkw:c6d2eefb105837e44465c0dfe2cd55a68a8621ee6c3bc9a52ecf57f1c934b00e@ec2-54-163-246-154.compute-1.amazonaws.com:5432/de64t12g30v1rj")
+func init() {
+	db_url := os.Getenv("DATABASE_URL")
+	if db_url == "" {
+		db_url = "host=localhost user=postgres dbname=gorm sslmode=disable password=postgres"
+	}
+	db, err = gorm.Open("postgres", db_url)
 	db.SingularTable(true)
 	if err != nil {
 		log.Panic(err)
 	}
-
+	db.AutoMigrate(User{})
 }
