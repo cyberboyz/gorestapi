@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	// "fmt"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -13,7 +12,19 @@ import (
 
 func AuthRequired(c *gin.Context) {
 	authorization := c.Request.Header.Get("Authorization")
-	if authorization != "12345" {
+
+	auth := &m.User{}
+	if authorization == "" {
+		response := &m.Response{
+			Message: "Cannot access the resource : You need to authenticate",
+		}
+		c.JSON(http.StatusUnauthorized, response)
+		c.Abort()
+		return
+	}
+
+	err := m.AuthorizeUser(auth, authorization)
+	if err != nil {
 		response := &m.Response{
 			Message: "Unauthorized access",
 		}
@@ -120,8 +131,6 @@ func LoginUser(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	fmt.Println(inputPassword)
-	fmt.Println(user.Password)
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(inputPassword))
 	if err != nil {
@@ -157,28 +166,39 @@ func LoginUser(c *gin.Context) {
 			"email":  user.Email,
 			"age":    user.Age,
 			"weight": user.Weight,
+			"token":  user.Token,
 		},
 	}
 
 	c.JSON(http.StatusOK, response)
 }
 
-// func LogoutUser(c *gin.Context) {
-// 	logout := &m.Users{}
+func LogoutUser(c *gin.Context) {
+	logout := &m.User{}
 
-// 	authorization := c.Request.Header.Get("Authorization")
-// 	authorization = strings.TrimPrefix(authorization, "Bearer ")
+	authorization := c.Request.Header.Get("Authorization")
+	authorization = strings.TrimPrefix(authorization, "Bearer ")
+	fmt.Println(authorization)
+	fmt.Println(logout.Token)
 
-// 	db.Model(logout).Update("token", logout.Token).Where("token", authorization)
+	err := m.LogoutUser(logout, authorization)
+	if err != nil {
+		response := &m.Response{
+			Message: err.Error(),
+		}
+		c.JSON(http.StatusServiceUnavailable, response)
+		c.Abort()
+		return
+	}
 
-// 	response := &m.Response{
-// 		Message:    "Logout successful",
-// 		Success:    true,
-// 		StatusCode: http.StatusOK,
-// 	}
+	response := &m.Response{
+		Message:    "Logout successful",
+		Success:    true,
+		StatusCode: http.StatusOK,
+	}
 
-// 	c.JSON(http.StatusOK, response)
-// }
+	c.JSON(http.StatusOK, response)
+}
 
 func PostGet(c *gin.Context) {
 	users, err := m.GetUsers()

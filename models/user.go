@@ -11,6 +11,11 @@ type User struct {
 	Token    string  `json:"token"`
 }
 
+func AuthorizeUser(user *User, authorization string) error {
+	err = db.Where("token = ? ", authorization).Find(&user).Error
+	return err
+}
+
 func RegisterUser(user *User) (*User, error) {
 	err = db.Create(user).Error
 	return user, err
@@ -18,6 +23,11 @@ func RegisterUser(user *User) (*User, error) {
 
 func LoginUser(user *User) error {
 	err = db.Where("email = ? ", user.Email).Find(&user).Error
+	return err
+}
+
+func LogoutUser(user *User, authorization string) error {
+	err = db.Model(user).Update("token", user.Token).Where("token", authorization).Error
 	return err
 }
 

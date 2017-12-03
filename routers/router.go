@@ -18,7 +18,7 @@ func GetEngine() *gin.Engine {
 		post.PUT("/:id", c.PostUpdate)
 		post.DELETE("/:id", c.PostDelete)
 	}
-	// router.Use(c.AuthRequired).POST("/logout", c.LogoutUser)
+	router.Use(c.AuthRequired).GET("/logout", c.LogoutUser)
 
 	return router
 }
