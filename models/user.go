@@ -16,6 +16,16 @@ func RegisterUser(user *User) (*User, error) {
 	return user, err
 }
 
+func LoginUser(user *User) error {
+	err = db.Where("email = ? ", user.Email).Find(&user).Error
+	return err
+}
+
+func UpdateToken(user *User) (*User, error) {
+	err = db.Model(user).Update("token", user.Token).Error
+	return user, err
+}
+
 func GetUsers() ([]*User, error) {
 	users := []*User{}
 	err = db.Find(&users).Error

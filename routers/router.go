@@ -9,6 +9,7 @@ func GetEngine() *gin.Engine {
 	router := gin.Default()
 
 	router.POST("/register", c.RegisterUser)
+	router.POST("/login", c.LoginUser)
 	post := router.Group("/post").Use(c.AuthRequired)
 	{
 		post.GET("/", c.PostGet)
@@ -17,6 +18,7 @@ func GetEngine() *gin.Engine {
 		post.PUT("/:id", c.PostUpdate)
 		post.DELETE("/:id", c.PostDelete)
 	}
+	// router.Use(c.AuthRequired).POST("/logout", c.LogoutUser)
 
 	return router
 }

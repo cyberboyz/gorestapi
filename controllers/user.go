@@ -2,6 +2,7 @@ package controllers
 
 import (
 	// "fmt"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	m "memperbaikikode/models"
@@ -90,17 +91,6 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	if err != nil {
-		response := &m.Response{
-			Success:    false,
-			StatusCode: http.StatusCreated,
-			Message:    "Error : Email has already been registered",
-		}
-		c.JSON(http.StatusOK, response)
-		c.Abort()
-		return
-	}
-
 	response := &m.Response{
 		Message:    "Registration is successful",
 		Success:    true,
@@ -114,6 +104,81 @@ func RegisterUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response)
 }
+
+func LoginUser(c *gin.Context) {
+	user := &m.User{}
+	c.Bind(user)
+	user.Email = strings.ToLower(user.Email)
+	inputPassword := user.Password
+
+	err := m.LoginUser(user)
+	if err != nil {
+		response := &m.Response{
+			Message: err.Error(),
+		}
+		c.JSON(http.StatusServiceUnavailable, response)
+		c.Abort()
+		return
+	}
+	fmt.Println(inputPassword)
+	fmt.Println(user.Password)
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(inputPassword))
+	if err != nil {
+		response := &m.Response{
+			Message:    "Error : Unauthorized User",
+			Success:    false,
+			StatusCode: http.StatusUnauthorized,
+		}
+		c.JSON(http.StatusBadRequest, response)
+		c.Abort()
+		return
+	}
+
+	if user.Token == "" {
+		user.Token = randToken(20)
+		_, err := m.UpdateToken(user)
+		if err != nil {
+			response := &m.Response{
+				Message: err.Error(),
+			}
+			c.JSON(http.StatusServiceUnavailable, response)
+			c.Abort()
+			return
+		}
+	}
+
+	response := &m.Response{
+		Message:    "Get user : Certain user detail has been shown",
+		Success:    true,
+		StatusCode: http.StatusOK,
+		Data: map[string]interface{}{
+			"nama":   user.Name,
+			"email":  user.Email,
+			"age":    user.Age,
+			"weight": user.Weight,
+		},
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+// func LogoutUser(c *gin.Context) {
+// 	logout := &m.Users{}
+
+// 	authorization := c.Request.Header.Get("Authorization")
+// 	authorization = strings.TrimPrefix(authorization, "Bearer ")
+
+// 	db.Model(logout).Update("token", logout.Token).Where("token", authorization)
+
+// 	response := &m.Response{
+// 		Message:    "Logout successful",
+// 		Success:    true,
+// 		StatusCode: http.StatusOK,
+// 	}
+
+// 	c.JSON(http.StatusOK, response)
+// }
 
 func PostGet(c *gin.Context) {
 	users, err := m.GetUsers()
