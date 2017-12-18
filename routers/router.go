@@ -6,19 +6,28 @@ import (
 )
 
 func GetEngine() *gin.Engine {
-	router := gin.Default()
+	r := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
 
+	router := r.Group("/v1")
 	router.POST("/register", c.RegisterUser)
 	router.POST("/login", c.LoginUser)
-	post := router.Group("/post").Use(c.AuthRequired)
+	user := router.Group("/user").Use(c.AuthRequired)
 	{
-		post.GET("/", c.PostGet)
-		post.GET("/:id", c.PostDetail)
-		post.POST("/", c.PostCreate)
-		post.PUT("/:id", c.PostUpdate)
-		post.DELETE("/:id", c.PostDelete)
+		user.GET("/", c.UserGet)
+		user.GET("/:id", c.UserDetail)
+		user.PUT("/:id", c.UserUpdate)
+		user.DELETE("/:id", c.UserDelete)
+	}
+	bencana := router.Group("/bencana").Use(c.AuthRequired)
+	{
+		bencana.POST("/", c.BencanaCreate)
+		bencana.GET("/", c.BencanaGet)
+		bencana.GET("/:id", c.BencanaDetail)
+		bencana.PUT("/:id", c.BencanaUpdate)
+		// user.DELETE("/:id", c.BencanaDelete)
 	}
 	router.Use(c.AuthRequired).GET("/logout", c.LogoutUser)
 
-	return router
+	return r
 }

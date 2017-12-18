@@ -20,12 +20,12 @@ var err error
 func init() {
 	db_url := os.Getenv("DATABASE_URL")
 	if db_url == "" {
-		db_url = "host=localhost user=postgres dbname=gorm sslmode=disable password=postgres"
+		db_url = "host=localhost user=postgres dbname=vie sslmode=disable password=postgres"
 	}
 	db, err = gorm.Open("postgres", db_url)
 	db.SingularTable(true)
 	if err != nil {
 		log.Panic(err)
 	}
-	db.AutoMigrate(User{})
+	db.AutoMigrate(User{}, Bencana{})
 }

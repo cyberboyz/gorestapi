@@ -17,6 +17,10 @@ func AuthorizeUser(user *User, authorization string) error {
 }
 
 func RegisterUser(user *User) (*User, error) {
+	err = db.Where("email = ? ", user.Email).Find(&user).Error
+	if err == nil {
+		return nil, nil
+	}
 	err = db.Create(user).Error
 	return user, err
 }
@@ -58,7 +62,7 @@ func UpdateUser(user *User) (*User, error) {
 	return user, err
 }
 
-func DeleteUser(id int) error {
-	err = db.Where("id = ?", id).Delete(&User{}).Error
+func DeleteUser(email string) error {
+	err = db.Where("email = ?", email).Delete(&User{}).Error
 	return err
 }
